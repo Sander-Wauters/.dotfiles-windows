@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Custom styles. -->
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
+
+    <!-- Allows React to be run buildless via "text/babel" script below. -->
+    <script
+      src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"
+      integrity="sha256-aS0B0wnsaDByLfE16h4MDCP1fQFccysd1YWOcV+gbBo="
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect } from "https://esm.sh/react@18?dev";
+      import { createRoot } from "https://esm.sh/react-dom@18/client?dev";
+      import * as zebar from "https://esm.sh/zebar@3.0";
+
+      const providers = zebar.createProviderGroup({
+        network: { type: "network" },
+        glazewm: { type: "glazewm" },
+        cpu: { type: "cpu" },
+        date: { type: "date", formatting: "yyyy-LL(LLL)-c(ccc) t" },
+        battery: { type: "battery" },
+        memory: { type: "memory" },
+        weather: { type: "weather" },
+      });
+
+      createRoot(document.getElementById("root")).render(<App />);
+
+      function App() {
+        const [output, setOutput] = useState(providers.outputMap);
+
+        useEffect(() => {
+          providers.onOutput(() => setOutput(providers.outputMap));
+        }, []);
+
+        function getNetworkIcon(networkOutput) {
+          switch (networkOutput.defaultInterface?.type) {
+            case "ethernet":
+              return "🌐";
+            case "proprietary_virtual":
+              return "🔒";
+            case "wifi":
+              return "📶";
+            default:
+              return "📡";
+          }
+        }
+
+        function getWeatherIcon(weatherOutput) {
+          switch (weatherOutput.status) {
+            case "clear_day":
+              return "☀️";
+            case "clear_night":
+              return "🌙";
+            case "cloudy_day":
+              return "⛅";
+            case "cloudy_night":
+              return "☁️";
+            case "light_rain_day":
+              return "🌦";
+            case "light_rain_night":
+              return "🌦";
+            case "heavy_rain_day":
+              return "🌧";
+            case "heavy_rain_night":
+              return "🌧";
+            case "snow_day":
+              return "🌨";
+            case "snow_night":
+              return "🌨";
+            case "thunder_day":
+              return "🌩";
+            case "thunder_night":
+              return "🌩";
+          }
+        }
+
+        function getBatteryIcon(batteryOutput) {
+          if (batteryOutput.chargePercent > 90) return "🔋";
+          if (batteryOutput.chargePercent > 40) return "⚡";
+          return "❗";
+        }
+
+        return (
+          <>
+            {output.glazewm && (
+              <section>
+                {output.glazewm.currentWorkspaces.map((workspace) => (
+                  <button
+                    className={`workspace ${workspace.hasFocus && "focused"} ${workspace.isDisplayed && "displayed"}`}
+                    onClick={() =>
+                      output.glazewm.runCommand(
+                        `focus --workspace ${workspace.name}`,
+                      )
+                    }
+                    key={workspace.name}
+                  >
+                    {workspace.displayName ?? workspace.name}
+                  </button>
+                ))}
+              </section>
+            )}
+            <section className="center">
+              {output.glazewm?.focusedContainer.processName}
+            </section>
+            <section className="row">
+              {output.weather && (
+                <div className="widget">
+                  {getWeatherIcon(output.weather)}
+                  {Math.round(output.weather.celsiusTemp)}°C
+                </div>
+              )}
+              {output.network && (
+                <div className="widget">
+                  {getNetworkIcon(output.network)}▼
+                  {output.network.traffic.received.siValue}
+                  {output.network.traffic.received.siUnit}▲
+                  {output.network.traffic.transmitted.siValue}
+                  {output.network.traffic.transmitted.siUnit}
+                </div>
+              )}
+              {output.memory && (
+                <div className="widget">
+                  🧠{Math.round(output.memory.usage)}%
+                </div>
+              )}
+              {output.cpu && (
+                <div className="widget">🔲{Math.round(output.cpu.usage)}%</div>
+              )}
+              {output.battery && (
+                <div className="widget">
+                  {getBatteryIcon(output.battery)}
+                  {Math.round(output.battery.chargePercent)}%
+                </div>
+              )}
+              {output.date && (
+                <div className="widget">{output.date.formatted}</div>
+              )}
+            </section>
+          </>
+        );
+      }
+    </script>
+  </body>
+</html>

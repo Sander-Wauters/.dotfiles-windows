@@ -1,0 +1,50 @@
+:root {
+  --bg: #282828;
+  --fg: #ebdbb2;
+  --yellow: #d79921;
+  --green: #98971a;
+  --blue: #458588;
+  --aqua: #689d6a;
+  --orange: #d65d0e;
+}
+
+body {
+  color: var(--fg);
+  background: var(--bg);
+  font-family: "NotoMono Nerd Font Mono";
+  font-size: 12px;
+  line-height: 24px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.row,
+#root {
+  display: flex;
+  justify-content: space-between;
+}
+
+.widget {
+  padding: 0 8px;
+}
+
+.center {
+  background: var(--blue);
+  flex: 1;
+  margin-right: 8px;
+  padding: 0 8px;
+}
+
+button {
+  color: var(--fg);
+  background-color: var(--bg);
+  border: none;
+  line-height: 24px;
+  margin: 0;
+  padding: 0 8px;
+
+  &.focused,
+  &:hover {
+    background: var(--blue);
+  }
+}
